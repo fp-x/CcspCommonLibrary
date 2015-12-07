@@ -1,3 +1,22 @@
+/*
+ * If not stated otherwise in this file or this component's Licenses.txt file the
+ * following copyright and licenses apply:
+ *
+ * Copyright 2015 RDK Management
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+*/
+
 /**********************************************************************
    Copyright [2014] [Cisco Systems, Inc.]
  
@@ -63,7 +82,26 @@
 #include "ansc_time.h"
 #include "ansc_debug.h"
 #include <stdarg.h>
-
+volatile BOOL RDKLogEnable = TRUE;
+volatile unsigned int RDKLogLevel = 4;
+volatile BOOL LM_RDKLogEnable = TRUE;
+volatile unsigned int LM_RDKLogLevel = 4;
+volatile BOOL SNMP_RDKLogEnable = TRUE;
+volatile unsigned int SNMP_RDKLogLevel = 4;
+volatile BOOL TR69_RDKLogEnable = TRUE;
+volatile unsigned int TR69_RDKLogLevel = 4;
+volatile BOOL PAM_RDKLogEnable = TRUE;
+volatile unsigned int PAM_RDKLogLevel = 4;
+volatile BOOL PSM_RDKLogEnable = TRUE;
+volatile unsigned int PSM_RDKLogLevel = 4;
+volatile BOOL MTA_RDKLogEnable = TRUE;
+volatile unsigned int MTA_RDKLogLevel = 4;
+volatile BOOL CM_RDKLogEnable = TRUE;
+volatile unsigned int CM_RDKLogLevel = 4;
+volatile BOOL WiFi_RDKLogEnable = TRUE;
+volatile unsigned int WiFi_RDKLogLevel = 4;
+volatile BOOL CR_RDKLogEnable = TRUE;
+volatile unsigned int CR_RDKLogLevel = 4;
 /**********************************************************************
                     VARIABLES FOR TRACE LEVEL
 **********************************************************************/
@@ -95,10 +133,12 @@ AnscSetTraceLevel_ansc
     switch(traceLevel)
     {
     case CCSP_TRACE_LEVEL_EMERGENCY:
+#ifndef FEATURE_SUPPORT_RDKLOG
         ansc_level = ANSC_TRACE_LEVEL_DEATH;
         break;
     case CCSP_TRACE_LEVEL_ALERT:
     case CCSP_TRACE_LEVEL_CRITICAL:
+#endif
         ansc_level = ANSC_TRACE_LEVEL_CRITICAL;
         break;
     case CCSP_TRACE_LEVEL_ERROR:

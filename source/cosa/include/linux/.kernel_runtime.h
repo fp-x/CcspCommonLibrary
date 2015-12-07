@@ -1,3 +1,22 @@
+/*
+ * If not stated otherwise in this file or this component's Licenses.txt file the
+ * following copyright and licenses apply:
+ *
+ * Copyright 2015 RDK Management
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+*/
+
 /**********************************************************************
    Copyright [2014] [Cisco Systems, Inc.]
  
@@ -117,53 +136,6 @@
 
     #define  atol(x)                                simple_strtoul(x,NULL,0)
     #define  _memicmp                               strnicmp
-
-    #define xtod(c)         ((c) <= '9' ? '0' - (c) : 'a' - (c) - 10)
-    static __inline__ long
-    atoi(char *p)
-    {
-        long n;
-        int c, neg = 0;
-
-        if (p == NULL)
-            return 0;
-
-        if (!isdigit(c = *p))
-        {
-            while (isspace(c))
-                c = *++p;
-            switch (c)
-            {
-                case '-':
-                    neg++;
-                case '+': /* fall-through */
-                    c = *++p;
-            }
-            if (!isdigit(c))
-                return (0);
-         }
-         if (c == '0' && *(p + 1) == 'x')
-         {
-             p += 2;
-             c = *p;
-             n = xtod(c);
-             while ((c = *++p) && isxdigit(c))
-             {
-                 n *= 16; /* two steps to avoid unnecessary overflow */
-                 n += xtod(c); /* accum neg to avoid surprises at MAX */
-             }
-         }
-         else
-         {
-             n = '0' - c;
-             while ((c = *++p) && isdigit(c))
-             {
-                 n *= 10; /* two steps to avoid unnecessary overflow */
-                 n += '0' - c; /* accum neg to avoid surprises at MAX */
-             }
-         }
-         return (neg ? n : -n);
-    }
 
     static __inline__ char*
     _itoa

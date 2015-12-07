@@ -1,3 +1,22 @@
+/*
+ * If not stated otherwise in this file or this component's Licenses.txt file the
+ * following copyright and licenses apply:
+ *
+ * Copyright 2015 RDK Management
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+*/
+
 /**********************************************************************
    Copyright [2014] [Cisco Systems, Inc.]
  
@@ -168,7 +187,10 @@ int openssl_init (int who_calls)
   /* VZ only allows TLS */
   g_ssl_ctx[who_calls] = ssl_ctx = SSL_CTX_new (SSLv23_method ());
   if (!ssl_ctx)
-    goto error;
+  {
+    openssl_print_errors ();
+    return 0;
+  }
 
   SSL_CTX_set_options(ssl_ctx,SSL_OP_NO_SSLv2);
 
@@ -182,17 +204,14 @@ int openssl_init (int who_calls)
 
       /* see openssl_validate_certificate() for certificate validation  */
       /* if not using openssl_validate_certificate(), make sure to use SSL_VERIFY_PEER  */
-      if (SSL_CTX_use_certificate_file (ssl_ctx, BBHM_CERT_FILE,
-                                        SSL_FILETYPE_PEM)
-          != 1)
-          goto error;
-      if (SSL_CTX_use_PrivateKey_file (ssl_ctx, BBHM_PRIVATE_KEY,
-                                       SSL_FILETYPE_PEM)
-          != 1)
-          goto error;
-
+      if ( (SSL_CTX_use_certificate_file (ssl_ctx, BBHM_CERT_FILE, SSL_FILETYPE_PEM) != 1) || 
+           (SSL_CTX_use_PrivateKey_file (ssl_ctx, BBHM_PRIVATE_KEY, SSL_FILETYPE_PEM) != 1) )
+      {
+        SSL_CTX_free (ssl_ctx);
+        openssl_print_errors ();
+        return 0;
+      }
       SSL_CTX_set_verify (ssl_ctx, SSL_VERIFY_NONE, NULL);
-
   }
 
   SSL_CTX_set_mode (ssl_ctx, SSL_MODE_ENABLE_PARTIAL_WRITE);
@@ -202,46 +221,38 @@ int openssl_init (int who_calls)
   openssl_load_ca_certificates(who_calls);
 
   return 1;
-
- error:
-  if (ssl_ctx)
-    SSL_CTX_free (ssl_ctx);
-
-  openssl_print_errors ();
-
-  return 0;
-
-
-}
-
-int openssl_shutdown()
-{
-	/* not much to do here */
-	openssl_thread_cleanup();
 }
 
 int openssl_read (int fd, char *buf, int bufsize, void *ctx)
 {
-  int ret;
+  int retval;
   SSL *ssl = (SSL *) ctx;
+
   do
-    ret = SSL_read (ssl, buf, bufsize);
-  while (ret == -1
-	 && SSL_get_error (ssl, ret) == SSL_ERROR_SYSCALL
-	 && errno == EINTR);
-  return ret;
+  {
+    retval = SSL_read (ssl, buf, bufsize);
+  }
+  while (retval == -1
+	       && SSL_get_error (ssl, retval) == SSL_ERROR_SYSCALL
+      	 && errno == EINTR);
+
+  return retval;
 }
 
 int openssl_write (int fd, char *buf, int bufsize, void *ctx)
 {
-  int ret = 0;
+  int retval = 0;
   SSL *ssl = (SSL *) ctx;
+  
   do
-    ret = SSL_write (ssl, buf, bufsize);
-  while (ret == -1
-	 && SSL_get_error (ssl, ret) == SSL_ERROR_SYSCALL
-	 && errno == EINTR);
-  return ret;
+  {
+    retval = SSL_write (ssl, buf, bufsize);
+  }
+  while (retval == -1
+	       && SSL_get_error (ssl, retval) == SSL_ERROR_SYSCALL
+	       && errno == EINTR);
+
+  return retval;
 }
 
 
