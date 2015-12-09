@@ -1,3 +1,22 @@
+/*
+ * If not stated otherwise in this file or this component's Licenses.txt file the
+ * following copyright and licenses apply:
+ *
+ * Copyright 2015 RDK Management
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+*/
+
 /**********************************************************************
    Copyright [2014] [Cisco Systems, Inc.]
  
@@ -131,134 +150,12 @@ KernelGetTickInMicroSeconds64
     *lo_part = jiffies * (1000000 / HZ);
 }
 
-/***************************
-*  * start of copy from glibc
-*   **************************/
-struct tm
-{
-    int tm_sec;           /* Seconds. [0-60] (1 leap second) */
-    int tm_min;           /* Minutes. [0-59] */
-    int tm_hour;          /* Hours.   [0-23] */
-    int tm_mday;          /* Day.     [1-31] */
-    int tm_mon;           /* Month.   [0-11] */
-    int tm_year;          /* Year - 1900.  */
-    int tm_wday;          /* Day of week. [0-6] */
-    int tm_yday;          /* Days in year.[0-365] */
-    int tm_isdst;         /* DST.     [-1/0/1]*/
-
-# ifdef __USE_BSD
-    long int tm_gmtoff;       /* Seconds east of UTC.  */
-    __const char *tm_zone;    /* Timezone abbreviation.  */
-# else
-    long int __tm_gmtoff;     /* Seconds east of UTC.  */
-    __const char *__tm_zone;  /* Timezone abbreviation.  */
-# endif
-};
-
-
-#define SECS_PER_HOUR   (60 * 60)
-#define SECS_PER_DAY    (SECS_PER_HOUR * 24)
-
-# define __isleap(year) \
-  ((year) % 4 == 0 && ((year) % 100 != 0 || (year) % 400 == 0))
-
-/* Compute the `struct tm' representation of *T,
-   offset OFFSET seconds east of UTC,
-   and store year, yday, mon, mday, wday, hour, min, sec into *TP.
-   Return nonzero if successful.  */
-__static_inline  int
-__offtime
-	(
-		const time_t			*t,
-		long int				offset,
-		struct tm				*tp
-	)
-{
-  const unsigned short int __mon_yday[2][13] =
-  {
-    /* Normal years.  */
-    { 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365 },
-    /* Leap years.  */
-    { 0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335, 366 }
-  };
-
-  long int days, rem, y;
-  const unsigned short int *ip;
-
-  days = *t / SECS_PER_DAY;
-  rem = *t % SECS_PER_DAY;
-  rem += offset;
-  while (rem < 0)
-    {
-      rem += SECS_PER_DAY;
-      --days;
-    }
-  while (rem >= SECS_PER_DAY)
-    {
-      rem -= SECS_PER_DAY;
-      ++days;
-    }
-  tp->tm_hour = rem / SECS_PER_HOUR;
-  rem %= SECS_PER_HOUR;
-  tp->tm_min = rem / 60;
-  tp->tm_sec = rem % 60;
-  /* January 1, 1970 was a Thursday.  */
-  tp->tm_wday = (4 + days) % 7;
-  if (tp->tm_wday < 0)
-    tp->tm_wday += 7;
-  y = 1970;
-
-#define DIV(a, b) ((a) / (b) - ((a) % (b) < 0))
-#define LEAPS_THRU_END_OF(y) (DIV (y, 4) - DIV (y, 100) + DIV (y, 400))
-
-  while (days < 0 || days >= (__isleap (y) ? 366 : 365))
-    {
-      /* Guess a corrected year, assuming 365 days per year.  */
-      long int yg = y + days / 365 - (days % 365 < 0);
-
-      /* Adjust DAYS and Y to match the guessed year.  */
-      days -= ((yg - y) * 365
-	       + LEAPS_THRU_END_OF (yg - 1)
-	       - LEAPS_THRU_END_OF (y - 1));
-      y = yg;
-    }
-  tp->tm_year = y - 1900;
-  if (tp->tm_year != y - 1900)
-    return 0;
-  tp->tm_yday = days;
-  ip = __mon_yday[__isleap(y)];
-  for (y = 11; days < (long int) ip[y]; --y)
-    continue;
-  days -= ip[y];
-  tp->tm_mon = y;
-  tp->tm_mday = days + 1;
-  return 1;
-}
-
 #define KernelGetLocalTime KernelGetSystemTime
 __static_inline  void
 KernelGetSystemTime(KERNEL_SYSTEM_TIME*  pSystemTime)
 {
-    struct timeval  tv;
-    time_t          timeNow;
-    struct tm       ttmm;
-    struct tm       *ptm;
-
-    do_gettimeofday(&tv);
-    timeNow = tv.tv_sec;
-
-    ptm = &ttmm;
-    __offtime(&timeNow, 0, ptm);
-
-    pSystemTime->Year           = ptm->tm_year + 1900;
-    pSystemTime->Month          = ptm->tm_mon + 1;
-    pSystemTime->DayOfMonth     = ptm->tm_mday;
-    pSystemTime->DayOfWeek      = ptm->tm_wday;
-    pSystemTime->Hour           = ptm->tm_hour;
-    pSystemTime->Minute         = ptm->tm_min;
-    pSystemTime->Second         = ptm->tm_sec;
-    pSystemTime->MilliSecond    = jiffies * 1000 / HZ;
-    pSystemTime->bDayLightSaving= ptm->tm_isdst;
+# not support
+    return;
 }
 
 #define SECONDS_FROM_1900_TO_1970        2208988800UL
@@ -378,60 +275,6 @@ KernelGetSystemTimeInSeconds()
         }
 #endif
 
-#ifdef  BCM_63XX
-        /*
-         *  BCM_6358
-         */
-        #define  KernelProfilingPccFactor            1
-
-        #define  PERF_COUNTER_BASE 0xFF420000
-
-        typedef struct BCM4350_register_config 
-        {
-            unsigned long global_control;		// 0x00
-            #define PCE_enable (1<<31)
-            #define PCSD_disable (1<<8)
-            #define ModID(module) (module<<2)
-            #define mod_BIU 1
-            #define mod_Core 2
-            #define mod_Data_Cache 4
-            #define mod_Instruction_Cache 6
-            #define mod_Readahead_Cache 0xb
-            #define SetID(id) (id)
-            #define mod_set_mask 0x3f
-            unsigned long control[2];			// 0x04, 0x08
-            #define BCM4350_COUNTER_EVENT(c,event)		(event  <<  (c%2 ? 18:2))
-            #define BCM4350_COUNTER_ENABLE(c)			(1      <<  (c%2 ? 31:15))
-            #define BCM4350_COUNTER_TPID(c,pid)			(pid    <<  (c%2 ? 29:13))
-            #define BCM4350_COUNTER_AMID(c,amid)		(amid   <<  (c%2 ? 25:9))
-            #define BCM4350_COUNTER_OVERFLOW(c)			(1    	<<	(c%2 ? 16:0))
-            unsigned long unused;		// 0x0c
-            long counter[4];			// 0x10, 0x14, 0x18, 0x1c
-        } Perf_Control;
-        #define PERFC ((volatile Perf_Control * const) PERF_COUNTER_BASE)
-
-         __static_inline  void
-         KernelProfilingStartPcc()
-         {
-            PERFC->global_control = PCE_enable;
-	        PERFC->control[0] = PERFC->control[1] = 0x0;
-            PERFC->counter[0] = -1;
-
-            PERFC->control[0] |= BCM4350_COUNTER_EVENT(0, 0x12) | BCM4350_COUNTER_ENABLE(0);
-         }
-
-         __static_inline  void
-         KernelProfilingStopPcc()
-         {
-            PERFC->global_control = 0;
-         }
-
-         __static_inline  ULONG
-         KernelProfilingReadPcc()
-         {
-            return  (0xFFFFFFFF - PERFC->counter[0] + 1);
-         }
-#endif
 
 
 #endif
