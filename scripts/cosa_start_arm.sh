@@ -13,20 +13,23 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 #######################################################################
+#PS=ps aux
+# busybox...
+PS=ps 
 mykill () {
-    if ps aux | grep $1 | grep -v grep; then
+    if $PS | grep $1 | grep -v grep; then
         echo "killing $1"
-        kill $(ps aux | grep $1 | grep -v grep | awk '{print $2}')
-        sleep 1
+ #       kill $($PS | grep $1 | grep -v grep | awk '{print $1}')
+        kill $($PS | grep $1 | grep -v grep | awk '{print $2}')
     fi
 }
 # myexec pam CcspPandMSsp "$SubsysArgs"
 myexec() {
     if [ -e ./$1 ]; then
-        if $3; then; sleep $3; fi
+        if [ "$3" != "" ]; then echo "sleep $3"; sleep $3; fi
         cd $1
-        echo $2 $3
-        $2 
+        echo $2
+        $2 &
         cd ..
     fi
 }
@@ -46,7 +49,9 @@ if [ "$1" = "kill" ] || [ "$2" = "kill" ]; then
     mykill CcspMtaAgentSsp
     mykill CcspCMAgentSsp
     mykill CcspLMLite
-    mykill CcspWecbController   
+    mykill CcspWecbController
+    mykill email_notification_monitor   
+    sleep 1
 fi
 
 # Start coredump
@@ -60,14 +65,16 @@ if [ -f "$PWD/core_compr" ]; then
         ./core_report.sh &
 fi
 
-# Start Config Recover
+# Start Config Recover - what is this? no trace
 echo "Starting Config Recover Daemon ..."
 conf_rec &
 
 cp ccsp_msg.cfg /tmp
 
 
-if ps aux | grep dbus-daemon.*ccsp | grep -v grep; then
+if $PS | grep dbus-daemon.*ccsp | grep -v grep; then
+    echo "dbus is running"
+else
     echo "Starting dbus"
     # have IP address for dbus config generated
     #./DbusCfg
@@ -138,9 +145,3 @@ if [ -e ./ccspRecoveryManager ]; then
 fi
 
 myexec lm "CcspLMLite $SubsysArgs" 3
-
-if [ -e ./lm ]; then
-    cd lm
-    sleep 5
-    ./CcspLMLite &
-fi
